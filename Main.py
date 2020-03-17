@@ -48,7 +48,7 @@ def gameTurn(layout, circle, square, dice):
         square = 1
 
     # -- Triggers
-    if (dice == 1 and square != 16):
+    if (dice == 2 and square != 16):
         if layout[square-1] == 4: # take random trap
             trap = random.randint(1,3)
         else:
