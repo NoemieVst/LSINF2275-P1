@@ -3,16 +3,16 @@ import random
 
 
 # we start our board at square 0 and the winning square is 14
-#next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
-#next_state_circle = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
-#end = 14
+next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
+next_state_circle = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
+end = 14
 
-next_state = [[1,2], [3], [3], [3]]
-next_state_circle = [[1,2], [3], [3], [0]]
-end = 3
+#next_state = [[1,2], [3], [3], [3]]
+#next_state_circle = [[1,2], [3], [3], [0]]
+#end = 3
 
-Expec = np.zeros(end)
-Dice = np.zeros(end)
+Expec = np.full(end, np.inf)
+Dice = np.full(end, np.inf)
 
 def gameTurn(layout, circle, square, dice):
     """Inputs :
@@ -179,7 +179,8 @@ def next_states(layout, current_state, dice, circle):
             for [k_prim, pass_next_turn] in l:
                 n_states.append([(1/3)*(1/len(l)), k_prim, pass_next_turn])
 
-    return n_states
+    return sorted(n_states, key=lambda x: x[1], reverse=True)
+    #return n_states
 
 
 def expected_cost(layout, current_state, dices, pass_turn, count, circle):
@@ -191,19 +192,21 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
         - add value of the dice in Dice[current_state] if not already done
         Output: - expected cost for the square "current_stare" """
 
-    if count > 100:  # we stop the infinite recursive calls
-        return 0
-
-    if pass_turn:
-        return [1 + expected_cost(layout, current_state, dices, False)]
+    #print("exp -  curr : ", current_state, ", count : ", count, ", dices : ", dices)
 
     if current_state == end:  # V(d) = 0
         return 0
 
-    #print("exp -  curr : ", current_state, ", count : ", count)
+    if count > 100:  # we stop the infinite recursive calls
+        Expec[current_state] = 0
+        return 0
 
-    if Expec[current_state] != 0:
+    if pass_turn:
+        return 1 + expected_cost(layout, current_state, dices, False, count+1, circle)
+
+    if Expec[current_state] != np.inf:
         return Expec[current_state]
+
 
     if len(dices) == 2:  # the two dices are available
 
@@ -241,7 +244,6 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
             else:
                 exp_cost += p * expected_cost(layout, k_prim, dices, next_pass_turn, 0, circle)
 
-
         Expec[current_state] = exp_cost
         Dice[current_state] = dices[0]
         return exp_cost
@@ -266,12 +268,12 @@ def markovDecision(layout, circle):
                     the finish one.
 
     """
-    expected_cost(layout, 0, [2], False, 0, circle)
+    expected_cost(layout, 0, [1,2], False, 0, circle)
     return [Expec, Dice]
 
 def main():
 
-    layout = np.array([0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0])
+    layout = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
     circle = False
 
     [ret1, ret2] = markovDecision(layout, circle)

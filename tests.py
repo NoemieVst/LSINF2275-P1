@@ -125,3 +125,26 @@ class Test(TestCase):
         self.text_exp_cost(layout, circle, dices, Expec_pred)
 
 
+    def test_exp_cost3(self):
+        """Test avec :
+        next_state = [[1, 2], [3], [3], [3]]
+        next_state_circle = [[1, 2], [3], [3], [0]]
+        end = 3
+        """
+        layout = [0,0,0,0]
+        dices = [1]
+        circle = True
+        Expec_pred = [4, 2, 2]
+        self.text_exp_cost(layout, circle, dices, Expec_pred)
+
+    def test_exp_cost4(self):
+        """Test avec :
+        next_state = [[1, 2], [3], [3], [3]]
+        next_state_circle = [[1, 2], [3], [3], [0]]
+        end = 3
+        """
+        layout = [0, 0, 0, 0]
+        dices = [2]
+        circle = True
+        Expec_pred = [0, 0, 0] # je n'ai pas calculé les valeurs...
+        self.text_exp_cost(layout, circle, dices, Expec_pred)
