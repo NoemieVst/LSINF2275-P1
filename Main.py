@@ -33,10 +33,7 @@ class Strategy():
         for i in range(nb_times):
             self.play_game()
 
-        #print(self.costs)
         for case in range(14):
-            # print(case)
-            # print(self.costs[case])
             if len(self.costs[case]) != 0:
                 self.average_costs[case] = sum(self.costs[case]) / len(self.costs[case])
 
@@ -62,13 +59,14 @@ class Strategy():
         self.turns.append(turn) # append the total number of turns of the actual game
 
         for case in range(14):
-            #print(turns_numbers[case])
             for val in turns_numbers[case]:
                 self.costs[case].append(turn-val)
 
 class Simulation():
     def __init__(self, layout, circle):
         """
+        Run simulations with simulate()
+        Then check the results with print_results() or plot_results()
         """
         self.simu_dice1 = Strategy("Dice 1", layout, circle, np.ones((15,1)))
         self.simu_dice2 = Strategy("Dice 2", layout, circle, 2*np.ones((15,1)))
@@ -90,7 +88,7 @@ class Simulation():
         print("Average costs for "+self.simu_dice2.name+" are "+str(self.simu_dice2.average_costs)+"\n")
         print("Average costs for "+self.simu_VI.name+" are "+str(self.simu_VI.average_costs)+"\n")
 
-    def plot(self):
+    def plot_results(self):
         pass # to do
 
 def gameTurn(layout, circle, square, dice):
@@ -353,13 +351,13 @@ def markovDecision(layout, circle):
 def main():
 
     layout_zeros = np.zeros((15,1))
-    layout_baisc1 = np.array([0,3,0,0,0, 0,0,0,0,0, 0,0,0,0,0])
+    layout_basic1 = np.array([0,3,0,0,0, 0,0,0,0,0, 0,0,0,0,0])
     layout_complex1 = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
     circle = False
 
     if True: # run simulations
-        simu = Simulation(layout_zeros, circle)
-        simu.simulate(10000)
+        simu = Simulation(layout_basic1, circle)
+        simu.simulate(1000)
         simu.print_results()
 
     if False: # test Markov
