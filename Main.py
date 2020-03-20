@@ -14,6 +14,85 @@ end = 14
 Expec = np.full(end, np.inf)
 Dice = np.full(end, np.inf)
 
+
+class Strategy():
+    def __init__(self, name, layout, circle, policy):
+        self.name = name
+        self.layout = layout
+        self.circle = circle
+        self.policy = policy
+
+        self.costs = [None]*14 # number of turns left for each case
+        self.average_costs = [None]*14 # average number of turns left for each case
+        for case in range(14):
+            self.costs[case] = list()
+
+        self.turns = list() # number of turns for each simulated game
+
+    def run_experiments(self, nb_times):
+        for i in range(nb_times):
+            self.play_game()
+
+        #print(self.costs)
+        for case in range(14):
+            # print(case)
+            # print(self.costs[case])
+            if len(self.costs[case]) != 0:
+                self.average_costs[case] = sum(self.costs[case]) / len(self.costs[case])
+
+    def play_game(self):
+        # -- play
+        turns_numbers = [None]*14
+        for case in range(14):
+            turns_numbers[case] = list()
+
+        square = 1
+        turn = 1
+        skip_next = False
+
+        while (square < 15):
+            turns_numbers[square-1].append(turn) #erreur ici
+            if skip_next == True:
+                skip_next = False
+            else:
+                [square,skip_next] = gameTurn(self.layout, self.circle, square, self.policy[square-1])
+            turn += 1
+
+        # -- save data
+        self.turns.append(turn) # append the total number of turns of the actual game
+
+        for case in range(14):
+            #print(turns_numbers[case])
+            for val in turns_numbers[case]:
+                self.costs[case].append(turn-val)
+
+class Simulation():
+    def __init__(self, layout, circle):
+        """
+        """
+        self.simu_dice1 = Strategy("Dice 1", layout, circle, np.ones((15,1)))
+        self.simu_dice2 = Strategy("Dice 2", layout, circle, 2*np.ones((15,1)))
+        [expec,dice] = markovDecision(layout, circle)
+        self.simu_VI = Strategy("Value Iteration", layout, circle, dice)
+
+        self.nb_times = 0
+
+    def simulate(self, nb_times):
+        self.simu_dice1.run_experiments(nb_times)
+        self.simu_dice2.run_experiments(nb_times)
+        self.simu_VI.run_experiments(nb_times)
+
+        self.nb_times = nb_times
+
+    def print_results(self):
+        print("Results for "+str(self.nb_times)+" simulations: \n")
+        print("Average costs for "+self.simu_dice1.name+" are "+str(self.simu_dice1.average_costs)+"\n")
+        print("Average costs for "+self.simu_dice2.name+" are "+str(self.simu_dice2.average_costs)+"\n")
+        print("Average costs for "+self.simu_VI.name+" are "+str(self.simu_VI.average_costs)+"\n")
+
+    def plot(self):
+        pass # to do
+
 def gameTurn(layout, circle, square, dice):
     """Inputs :
     layout : vector (numpy.ndarray) representing the layout of the game
@@ -273,11 +352,19 @@ def markovDecision(layout, circle):
 
 def main():
 
-    layout = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
+    layout_zeros = np.zeros((15,1))
+    layout_baisc1 = np.array([0,3,0,0,0, 0,0,0,0,0, 0,0,0,0,0])
+    layout_complex1 = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
     circle = False
 
-    [ret1, ret2] = markovDecision(layout, circle)
-    print(ret1, ret2)
+    if True: # run simulations
+        simu = Simulation(layout_zeros, circle)
+        simu.simulate(10000)
+        simu.print_results()
+
+    if False: # test Markov
+        [ret1, ret2] = markovDecision(layout_zeros, circle)
+        print(ret1, ret2)
 
     # test basic strategies
     #policy_1 = np.ones((15,1))
