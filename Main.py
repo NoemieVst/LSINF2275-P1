@@ -3,19 +3,19 @@ import random
 
 
 # we start our board at square 0 and the winning square is 14
-next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
-next_state2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
-next_state_circle = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
-next_state_circle2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
-three_backwards = [ 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 10]
-end = 14
+#next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
+#next_state2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
+#next_state_circle = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
+#next_state_circle2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
+#three_backwards = [ 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 10]
+#end = 14
 
-#next_state = [[1,3], [2], [4], [4], [4]]
-#next_state2 = [[1], [2], [4], [4], [4]]
-#next_state_circle = [[1,3], [2], [4], [4], [0]]
-#next_state_circle2 = [[1], [2], [4], [4], [0]]
-#three_backwards = [0,0,0,0]
-#end = 4
+next_state = [[1,3], [2], [4], [4], [4]]
+next_state2 = [[1], [2], [4], [4], [4]]
+next_state_circle = [[1,3], [2], [4], [4], [0]]
+next_state_circle2 = [[1], [2], [4], [4], [0]]
+three_backwards = [0,0,0,0]
+end = 4
 
 Expec_init = np.zeros(end)
 
@@ -378,13 +378,17 @@ def main():
     layout_complex1 = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
     circle = False
 
-    if True: # run simulations
+
+    simu = True
+    markov = False
+
+    if simu: # run simulations
         simu = Simulation(layout_basic1, circle)
         simu.simulate(1000)
         simu.print_results()
 
-    if False: # test Markov
-        [ret1, ret2] = markovDecision(layout_zeros, circle)
+    if markov: # test Markov
+        [ret1, ret2] = markovDecision(layout, circle)
         print(ret1, ret2)
 
 
@@ -393,6 +397,7 @@ def main():
     #policy_2 = 2*np.ones((15,1))
 
     #playGame(layout,circle,policy_1)
+
 
 def test(layout, circle, dices):
 
@@ -405,9 +410,7 @@ def test(layout, circle, dices):
             Expec[i] = np.inf
         expected_cost(layout, current_state=0, dices=dices, pass_turn=False, count=0, circle=circle)
         print(Expec, Dice)
-
     return [Expec, Dice]
-
 
 
 if __name__ == "__main__":
