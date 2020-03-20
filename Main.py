@@ -4,12 +4,20 @@ import random
 
 # we start our board at square 0 and the winning square is 14
 next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
+next_state2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
 next_state_circle = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
+next_state_circle2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
+three_backwards = [ 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 10]
 end = 14
 
-#next_state = [[1,2], [3], [3], [3]]
-#next_state_circle = [[1,2], [3], [3], [0]]
-#end = 3
+#next_state = [[1,3], [2], [4], [4], [4]]
+#next_state2 = [[1], [2], [4], [4], [4]]
+#next_state_circle = [[1,3], [2], [4], [4], [0]]
+#next_state_circle2 = [[1], [2], [4], [4], [0]]
+#three_backwards = [0,0,0,0]
+#end = 4
+
+Expec_init = np.zeros(end)
 
 Expec = np.full(end, np.inf)
 Dice = np.full(end, np.inf)
@@ -128,12 +136,12 @@ def number_next_state(layout, current_state, step, dice, circle):
     if step == 2 and circle:
         numbers2 = []
         for n in numbers:
-            numbers2 += next_state_circle[n]
+            numbers2 += next_state_circle2[n]
         numbers = numbers2
     elif step == 2 and not circle:
         numbers2 = []
         for n in numbers:
-            numbers2 += next_state[n]
+            numbers2 += next_state2[n]
         numbers = numbers2
 
     if dice == 1:  # security dice
@@ -145,7 +153,7 @@ def number_next_state(layout, current_state, step, dice, circle):
             if layout[n] == 1:
                 ret.append([1, False])  # back to the first square
             elif layout[n] == 2:
-                ret.append([max(1, n - 3), False])  # 3 squares backwards or 1
+                ret.append([three_backwards[n], False])  # 3 squares backwards or 1
             elif layout[n] == 3:
                 ret.append([n, True])  # wait one turn before playing again
             elif layout[n] == 4:
@@ -153,7 +161,7 @@ def number_next_state(layout, current_state, step, dice, circle):
                 if rand == 1:
                     ret.append([1, False])
                 elif rand == 2:
-                    ret.append([max(1, n - 3), False])
+                    ret.append([three_backwards[n], False])
                 else:
                     ret.append([n, True])
             else:
@@ -192,20 +200,23 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
         - add value of the dice in Dice[current_state] if not already done
         Output: - expected cost for the square "current_stare" """
 
-    #print("exp -  curr : ", current_state, ", count : ", count, ", dices : ", dices)
 
     if current_state == end:  # V(d) = 0
-        return 0
-
-    if count > 100:  # we stop the infinite recursive calls
-        Expec[current_state] = 0
         return 0
 
     if pass_turn:
         return 1 + expected_cost(layout, current_state, dices, False, count+1, circle)
 
+    if count >100:  # we stop the infinite recursive calls
+        Expec[current_state] = Expec_init[current_state]
+        return 0
+
+
     if Expec[current_state] != np.inf:
         return Expec[current_state]
+
+    #if count < 5:
+    #    print("exp -  curr : ", current_state, ", count : ", count)
 
 
     if len(dices) == 2:  # the two dices are available
@@ -238,12 +249,13 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
     else:  # only one dice available
         exp_cost = 1
         for [p, k_prim, next_pass_turn] in next_states(layout, current_state, dices[0], circle):
-            #print("curr : ", current_state, ", p :", p, ", k_prim :", k_prim, "count : ", count)
             if k_prim == current_state:
                 exp_cost += p * expected_cost(layout, k_prim, dices, next_pass_turn, count + 1, circle)
             else:
                 exp_cost += p * expected_cost(layout, k_prim, dices, next_pass_turn, 0, circle)
 
+        #if count ==100 or count == 0 :
+        #    print("     curr : ", current_state, ", count : ", count, ", exp_cost : ", exp_cost)
         Expec[current_state] = exp_cost
         Dice[current_state] = dices[0]
         return exp_cost
@@ -268,16 +280,31 @@ def markovDecision(layout, circle):
                     the finish one.
 
     """
-    expected_cost(layout, 0, [1,2], False, 0, circle)
+    #expected_cost(layout, 0, [1,2], False, 0, circle)
+    #return [Expec, Dice]
+
+
+    expected_cost(layout, current_state=0, dices=[1,2], pass_turn=False, count=0, circle=circle)
+    print(Expec, Dice)
+    for j in range(10):
+
+        for i in range(len(Expec_init)):
+            Expec_init[i] = Expec[i]
+            Expec[i] = np.inf
+        expected_cost(layout, current_state=0, dices=[1,2], pass_turn=False, count=0, circle=circle)
+        print(Expec, Dice)
+
     return [Expec, Dice]
 
 def main():
 
-    layout = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
+    #layout = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
+    layout = np.array([0,0,1,0,3,0,0,2,0,1,0,4,0,3,0])
     circle = False
 
     [ret1, ret2] = markovDecision(layout, circle)
     print(ret1, ret2)
+
 
     # test basic strategies
     #policy_1 = np.ones((15,1))
@@ -286,8 +313,17 @@ def main():
     #playGame(layout,circle,policy_1)
 
 def test(layout, circle, dices):
+
     expected_cost(layout, current_state=0, dices=dices, pass_turn=False, count=0, circle=circle)
     print(Expec, Dice)
+    for j in range(10):
+
+        for i in range(len(Expec_init)):
+            Expec_init[i] = Expec[i]
+            Expec[i] = np.inf
+        expected_cost(layout, current_state=0, dices=dices, pass_turn=False, count=0, circle=circle)
+        print(Expec, Dice)
+
     return [Expec, Dice]
 
 

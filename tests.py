@@ -19,11 +19,7 @@ class Test(TestCase):
         [Expec, Dice] = test(layout, circle=circle, dices=dices)
         Expec = list(Expec)
         for i in range(len(Expec)):
-            self.assertEqual(Expec[i], Expec_pred[i])
-
-
-
-
+            self.assertEqual(round(Expec[i], 4), round(Expec_pred[i], 4))
 
     def test_number_next_state1(self):
         layout = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
@@ -100,51 +96,48 @@ class Test(TestCase):
         self.test_next_states(layout,current_state, dice, circle, pred)
 
 
+
     def test_exp_cost1(self):
         """Test avec :
-        next_state = [[1, 2], [3], [3], [3]]
-        next_state_circle = [[1, 2], [3], [3], [0]]
-        end = 3
+        next_state = [[1,3], [2], [4], [4], [4]]
+        next_state2 = [[1], [2], [4], [4], [4]]
+        next_state_circle = [[1,3], [2], [4], [4], [0]]
+        next_state_circle2 = [[1,3], [2], [4], [4], [0]]
+        three_backwards = [0,0,0,0]
+        end = 4
         """
-        layout = [0,0,0,0]
-        dices = [2]
+        layout = [0, 0, 0, 0, 0]
+        dices = [1]
         circle = False
-        Expec_pred = [2.25, 1.5, 1.5]
+        Expec_pred = [5, 4, 2, 2]
         self.text_exp_cost(layout, circle, dices, Expec_pred)
 
     def test_exp_cost2(self):
         """Test avec :
-        next_state = [[1, 2], [3], [3], [3]]
-        next_state_circle = [[1, 2], [3], [3], [0]]
-        end = 3
+        next_state = [[1,3], [2], [4], [4], [4]]
+        next_state2 = [[1], [2], [4], [4], [4]]
+        next_state_circle = [[1,3], [2], [4], [4], [0]]
+        next_state_circle2 = [[1,3], [2], [4], [4], [0]]
+        three_backwards = [0,0,0,0]
+        end = 4
         """
-        layout = [0,0,0,0]
-        dices = [1]
+        layout = [0, 0, 0, 0, 0]
+        dices = [2]
         circle = False
-        Expec_pred = [4, 2, 2]
+        Expec_pred = [2.8125, 2.25, 1.5, 1.5]
         self.text_exp_cost(layout, circle, dices, Expec_pred)
 
-
-    def test_exp_cost3(self):
+    def test_exp_cost2(self):
         """Test avec :
-        next_state = [[1, 2], [3], [3], [3]]
-        next_state_circle = [[1, 2], [3], [3], [0]]
-        end = 3
+        next_state = [[1,3], [2], [4], [4], [4]]
+        next_state2 = [[1], [2], [4], [4], [4]]
+        next_state_circle = [[1,3], [2], [4], [4], [0]]
+        next_state_circle2 = [[1,3], [2], [4], [4], [0]]
+        three_backwards = [0,0,0,0]
+        end = 4
         """
-        layout = [0,0,0,0]
-        dices = [1]
-        circle = True
-        Expec_pred = [4, 2, 2]
-        self.text_exp_cost(layout, circle, dices, Expec_pred)
-
-    def test_exp_cost4(self):
-        """Test avec :
-        next_state = [[1, 2], [3], [3], [3]]
-        next_state_circle = [[1, 2], [3], [3], [0]]
-        end = 3
-        """
-        layout = [0, 0, 0, 0]
+        layout = [0, 0, 0, 0, 0]
         dices = [2]
         circle = True
-        Expec_pred = [0, 0, 0] # je n'ai pas calculé les valeurs...
+        Expec_pred = [45/11, 36/11, 39/11, 39/11]
         self.text_exp_cost(layout, circle, dices, Expec_pred)
