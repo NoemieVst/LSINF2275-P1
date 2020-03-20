@@ -52,15 +52,16 @@ class Strategy():
             turns_numbers[case] = list()
 
         square = 1
+        theorical_suqare = 1
         turn = 1
         skip_next = False
 
         while (square < 15):
-            turns_numbers[square-1].append(turn) #erreur ici
+            turns_numbers[theorical_suqare-1].append(turn)
             if skip_next == True:
                 skip_next = False
             else:
-                [square,skip_next] = gameTurn(self.layout, self.circle, square, self.policy[square-1])
+                [square,skip_next,theorical_suqare] = gameTurn(self.layout, self.circle, square, self.policy[square-1])
             turn += 1
 
         # -- save data
@@ -116,10 +117,12 @@ def gameTurn(layout, circle, square, dice):
         dice =          1: use the "security" dice
                         2: use the "normal" dice
 
-    Output : [new_square, skip_next]
+    Output : [new_square, skip_next, theorical_square]
         new_square:     (int) new position after one game step,
                         using the dice and starting at the square given as inputs
-        skip_next:           (bool) True if step on prison trap
+        skip_next:      (bool) True if step on prison trap
+        theorical_square:(int) new position before going on the trap
+                        (is the same as new_square if there is no trap)
     """
 
     skip_next = False
@@ -145,6 +148,8 @@ def gameTurn(layout, circle, square, dice):
     if (square == 16 and circle == True): # in case of circular plate
         square = 1
 
+    theorical_square = square
+
     # -- Triggers
     if (dice == 2 and square != 16):
         if layout[square-1] == 4: # take random trap
@@ -164,7 +169,7 @@ def gameTurn(layout, circle, square, dice):
         elif trap == 3:
             skip_next = True
 
-    return [square,skip_next]
+    return [square,skip_next,theorical_square]
 
 def playGame(layout, circle, policy):
     """Inputs :
@@ -192,7 +197,7 @@ def playGame(layout, circle, policy):
             print("Turn "+str(turn)+": you are in the prison")
             skip_next = False
         else:
-            [square,skip_next] = gameTurn(layout, circle, square, policy[square-1])
+            [square,skip_next,theorical_square] = gameTurn(layout, circle, square, policy[square-1])
             print("Turn "+str(turn)+": you are now on square "+str(square))
         turn += 1
 
@@ -374,7 +379,7 @@ def markovDecision(layout, circle):
 def main():
     layout = np.array([0, 0, 1, 0, 3, 0, 0, 2, 0, 1, 0, 4, 0, 3, 0])
     layout_zeros = np.zeros((15,1))
-    layout_basic1 = np.array([0,3,0,0,0, 0,0,0,0,0, 0,0,0,0,0])
+    layout_basic1 = np.array([0,1,0,0,0, 0,0,0,0,0, 0,0,0,0,0])
     layout_complex1 = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
     circle = False
 
@@ -384,7 +389,7 @@ def main():
 
     if simu: # run simulations
         simu = Simulation(layout_basic1, circle)
-        simu.simulate(1000)
+        simu.simulate(10000)
         simu.print_results()
 
     if markov: # test Markov
