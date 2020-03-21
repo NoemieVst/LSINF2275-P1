@@ -1,6 +1,8 @@
 import numpy as np
 import random
 
+import matplotlib.pyplot as plt
+
 
 # we start our board at square 0 and the winning square is 14
 next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
@@ -33,11 +35,12 @@ Dice = np.full(end, np.inf)
 
 
 class Strategy():
-    def __init__(self, name, layout, circle, policy):
+    def __init__(self, name, random, layout, circle, policy=[]):
         self.name = name
+        self.random = random # random=True: play without a policy, using random choices
         self.layout = layout
         self.circle = circle
-        self.policy = policy
+        self.policy = policy # not needed IF random=True
 
         self.costs = [None]*14 # number of turns left for each case
         self.average_costs = [None]*14 # average number of turns left for each case
@@ -70,7 +73,10 @@ class Strategy():
             if skip_next == True:
                 skip_next = False
             else:
-                [square,skip_next,theorical_suqare] = gameTurn(self.layout, self.circle, square, self.policy[square-1])
+                if self.random == False:
+                    [square,skip_next,theorical_suqare] = gameTurn(self.layout, self.circle, square, self.policy[square-1])
+                else:
+                    [square,skip_next,theorical_suqare] = gameTurn(self.layout, self.circle, square, random.randint(1,2))
             turn += 1
 
         # -- save data
@@ -81,33 +87,63 @@ class Strategy():
                 self.costs[case].append(turn-val)
 
 class Simulation():
-    def __init__(self, layout, circle):
+    def __init__(self, layout_name, layout, circle):
         """
         Run simulations with simulate()
         Then check the results with print_results() or plot_results()
         """
-        self.simu_dice1 = Strategy("Dice 1", layout, circle, np.ones((15,1)))
-        self.simu_dice2 = Strategy("Dice 2", layout, circle, 2*np.ones((15,1)))
+        self.layout_name = layout_name # name of the layout, will be used for the plots
+        self.simu_dice1 = Strategy("Dice 1", False, layout, circle, np.ones((15,1)))
+        self.simu_dice2 = Strategy("Dice 2", False, layout, circle, 2*np.ones((15,1)))
+        self.simu_random = Strategy("Random", True, layout, circle)
         [expec,dice] = markovDecision(layout, circle)
-        self.simu_VI = Strategy("Value Iteration", layout, circle, dice)
+        self.simu_VI = Strategy("Value Iteration", False, layout, circle, dice)
+        print("Theorical costs for "+self.simu_VI.name+" are "+str(expec)+"\n")
 
         self.nb_times = 0
 
     def simulate(self, nb_times):
         self.simu_dice1.run_experiments(nb_times)
         self.simu_dice2.run_experiments(nb_times)
+        self.simu_random.run_experiments(nb_times)
         self.simu_VI.run_experiments(nb_times)
 
         self.nb_times = nb_times
 
     def print_results(self):
         print("Results for "+str(self.nb_times)+" simulations: \n")
-        print("Average costs for " + self.simu_dice1.name + " are " + str(self.simu_dice1.average_costs) + "\n")
-        print("Average costs for " + self.simu_dice2.name + " are " + str(self.simu_dice2.average_costs) + "\n")
-        print("Average costs for " + self.simu_VI.name + " are " + str(self.simu_VI.average_costs) + "\n")
+        print("Average costs for "+self.simu_dice1.name+" are "+str(self.simu_dice1.average_costs)+"\n")
+        print("Average costs for "+self.simu_dice2.name+" are "+str(self.simu_dice2.average_costs)+"\n")
+        print("Average costs for "+self.simu_random.name+" are "+str(self.simu_random.average_costs)+"\n")
+        print("Average costs for "+self.simu_VI.name+" are "+str(self.simu_VI.average_costs)+"\n")
 
     def plot_results(self):
-        pass # to do
+        # -- Box plot of the average number of turns for each game
+        data = [self.simu_dice1.turns, self.simu_dice2.turns, self.simu_random.turns, self.simu_VI.turns]
+        fig, ax = plt.subplots()
+        ax.set_title('Boxplot of the number of turns for different strategies, using '+self.layout_name)
+        ax.boxplot(data,showfliers=False)
+        ax.set_ylabel('Number of turns')
+        ax.set_xticklabels([self.simu_dice1.name, self.simu_dice2.name, self.simu_random.name, self.simu_VI.name])
+        plt.show()
+
+        # -- Plot of the average costs found
+        X = range(1,15)
+        plt.plot(X,self.simu_dice1.average_costs)
+        plt.plot(X,self.simu_dice2.average_costs)
+        plt.plot(X,self.simu_random.average_costs)
+        plt.plot(X,self.simu_VI.average_costs)
+        plt.legend((self.simu_dice1.name, self.simu_dice2.name, self.simu_random.name, self.simu_VI.name),
+           loc='upper right')
+        axes = plt.gca()
+        axes.xaxis.set_ticks(X)
+        plt.title('Empirical average costs for different strategies, using '+self.layout_name)
+        plt.xlabel('Square')
+        plt.ylabel('Average cost')
+        plt.show()
+
+        # -- Comparaison between theorical and experimental costs for VI (Value Iteration)
+        # -> with a table in the report
 
 def gameTurn(layout, circle, square, dice):
     """Inputs :
@@ -389,15 +425,16 @@ def main():
 
 
     simu = True
-    markov = True
+    markov = False
 
     if simu: # run simulations
-        simu = Simulation(layout_test, circle)
-        simu.simulate(10000)
+        simu = Simulation("no traps", layout_zeros, circle)
+        simu.simulate(1000)
         simu.print_results()
+        simu.plot_results()
 
     if markov: # test Markov
-        [ret1, ret2] = markovDecision(layout_test, circle)
+        [ret1, ret2] = markovDecision(layout_zeros, circle)
         print("Expected costs (Markov process) : ", ret1)
         #print("Expected costs (Markov process) : ", [round(x, 5) for x in ret1])
         #print(ret2)
