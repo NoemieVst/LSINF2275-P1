@@ -69,7 +69,7 @@ class Strategy():
         skip_next = False
 
         while (square < 15):
-            turns_numbers[theorical_suqare-1].append(turn)
+            turns_numbers[square-1].append(turn)
             if skip_next == True:
                 skip_next = False
             else:
@@ -97,6 +97,7 @@ class Simulation():
         self.simu_dice2 = Strategy("Dice 2", False, layout, circle, 2*np.ones((15,1)))
         self.simu_random = Strategy("Random", True, layout, circle)
         [expec,dice] = markovDecision(layout, circle)
+        self.simu_VI_expec = expec
         self.simu_VI = Strategy("Value Iteration", False, layout, circle, dice)
         print("Theorical costs for "+self.simu_VI.name+" are "+str(expec)+"\n")
 
@@ -144,6 +145,14 @@ class Simulation():
 
         # -- Comparaison between theorical and experimental costs for VI (Value Iteration)
         # -> with a table in the report
+
+    def export_array(self, filename): # saves the theorical and empirical costs in the file <filename>.csv
+        X = range(1,15)
+        Table = np.asarray([X,self.simu_VI_expec,self.simu_VI.average_costs])
+        Table.shape = (3,14)
+        Table = Table.transpose()
+        print(Table)
+        np.savetxt(filename+".csv", Table)
 
 def gameTurn(layout, circle, square, dice):
     """Inputs :
@@ -421,21 +430,22 @@ def main():
     layout_basic3 = np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
     layout_test = np.array([0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 3, 0, 0, 0])
-    circle = True
-
+    circle = False
 
     simu = True
     markov = False
 
     if simu: # run simulations
-        simu = Simulation("no traps", layout_zeros, circle)
-        simu.simulate(1000)
+        simu = Simulation("no traps", layout_basic1, circle)
+        simu.simulate(10000)
         simu.print_results()
-        simu.plot_results()
+        #simu.export_array("cost_no_traps_True")
+        #simu.plot_results()
 
     if markov: # test Markov
         [ret1, ret2] = markovDecision(layout_zeros, circle)
         print("Expected costs (Markov process) : ", ret1)
+        print("Dices (Markov process) : ", ret2)
         #print("Expected costs (Markov process) : ", [round(x, 5) for x in ret1])
         #print(ret2)
 
