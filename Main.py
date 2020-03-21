@@ -3,19 +3,28 @@ import random
 
 
 # we start our board at square 0 and the winning square is 14
-#next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
-#next_state2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
-#next_state_circle = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
-#next_state_circle2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
-#three_backwards = [ 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 10]
-#end = 14
+next_state = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
+next_state2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [14]]
+next_state_circle = [[1], [2], [3,10], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
+next_state_circle2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [12], [13], [14], [0]]
+three_backwards = [ 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 10]
+end = 14
 
-next_state = [[1,3], [2], [4], [4], [4]]
-next_state2 = [[1], [2], [4], [4], [4]]
-next_state_circle = [[1,3], [2], [4], [4], [0]]
-next_state_circle2 = [[1], [2], [4], [4], [0]]
-three_backwards = [0,0,0,0]
-end = 4
+# For the tests
+# next_state = [[1,3], [2], [4], [4], [4]]
+# next_state2 = [[1], [2], [4], [4], [4]]
+# next_state_circle = [[1,3], [2], [4], [4], [0]]
+# next_state_circle2 = [[1], [2], [4], [4], [0]]
+# three_backwards = [0,0,0,0]
+# end = 4
+
+# next_state = [[1], [2], [3], [4], [5], [5]]
+# next_state2 = [[1], [2], [3], [4], [5], [5]]
+# next_state_circle = [[1], [2], [3], [4], [5], [0]]
+# next_state_circle2 = [[1], [2], [3], [4], [5], [0]]
+# three_backwards = [0,0,0,0,1]
+# end = 5
+
 
 Expec_init = np.zeros(end)
 
@@ -93,9 +102,9 @@ class Simulation():
 
     def print_results(self):
         print("Results for "+str(self.nb_times)+" simulations: \n")
-        print("Average costs for "+self.simu_dice1.name+" are "+str(self.simu_dice1.average_costs)+"\n")
-        print("Average costs for "+self.simu_dice2.name+" are "+str(self.simu_dice2.average_costs)+"\n")
-        print("Average costs for "+self.simu_VI.name+" are "+str(self.simu_VI.average_costs)+"\n")
+        print("Average costs for " + self.simu_dice1.name + " are " + str(self.simu_dice1.average_costs) + "\n")
+        print("Average costs for " + self.simu_dice2.name + " are " + str(self.simu_dice2.average_costs) + "\n")
+        print("Average costs for " + self.simu_VI.name + " are " + str(self.simu_VI.average_costs) + "\n")
 
     def plot_results(self):
         pass # to do
@@ -233,15 +242,17 @@ def number_next_state(layout, current_state, step, dice, circle):
         ret = []
         for n in numbers:
             if layout[n] == 1:
-                ret.append([1, False])  # back to the first square
+                # Expec[n] = 0 if Expec_init[0] == np.inf else Expec_init[0]
+                ret.append([0, False])  # back to the first square
             elif layout[n] == 2:
+                #Expec[n] = 0 if Expec_init[three_backwards[n]] == np.inf else Expec_init[three_backwards[n]]
                 ret.append([three_backwards[n], False])  # 3 squares backwards or 1
             elif layout[n] == 3:
                 ret.append([n, True])  # wait one turn before playing again
             elif layout[n] == 4:
                 rand = random.randint(1, 3)  # randomly applies the effect of 1 of the 3 previous traps, equal proba
                 if rand == 1:
-                    ret.append([1, False])
+                    ret.append([0, False])
                 elif rand == 2:
                     ret.append([three_backwards[n], False])
                 else:
@@ -282,6 +293,7 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
         - add value of the dice in Dice[current_state] if not already done
         Output: - expected cost for the square "current_stare" """
 
+    #print("curr : ", current_state, Expec)
 
     if current_state == end:  # V(d) = 0
         return 0
@@ -289,9 +301,9 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
     if pass_turn:
         return 1 + expected_cost(layout, current_state, dices, False, count+1, circle)
 
-    if count >100:  # we stop the infinite recursive calls
+    if count > 100:  # we stop the infinite recursive calls
         Expec[current_state] = Expec_init[current_state]
-        return 0
+        return Expec_init[current_state]
 
 
     if Expec[current_state] != np.inf:
@@ -302,7 +314,6 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
 
         exp_cost1 = 1  # c(a|k)
         for [p, k_prim, next_pass_turn] in next_states(layout, current_state, 1, circle):
-            #print("curr : ", current_state, ", p :", p, ", k_prim :", k_prim, "count : ", count)
             if k_prim == current_state:
                 exp_cost1 += p * expected_cost(layout, k_prim, dices, next_pass_turn, count + 1, circle)
             else:
@@ -310,7 +321,6 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
 
         exp_cost2 = 1
         for [p, k_prim, next_pass_turn] in next_states(layout, current_state, 2, circle):
-            #print("curr : ", current_state, ", p :", p, ", k_prim :", k_prim, "count : ", count)
             if k_prim == current_state:
                 exp_cost2 += p * expected_cost(layout, k_prim, dices, next_pass_turn, count + 1, circle)
             else:
@@ -328,14 +338,11 @@ def expected_cost(layout, current_state, dices, pass_turn, count, circle):
     else:  # only one dice available
         exp_cost = 1
         for [p, k_prim, next_pass_turn] in next_states(layout, current_state, dices[0], circle):
-            #print("curr : ", current_state, ", p :", p, ", k_prim :", k_prim, "count : ", count)
             if k_prim == current_state:
                 exp_cost += p * expected_cost(layout, k_prim, dices, next_pass_turn, count + 1, circle)
             else:
                 exp_cost += p * expected_cost(layout, k_prim, dices, next_pass_turn, 0, circle)
 
-        #if count ==100 or count == 0 :
-        #    print("     curr : ", current_state, ", count : ", count, ", exp_cost : ", exp_cost)
         Expec[current_state] = exp_cost
         Dice[current_state] = dices[0]
         return exp_cost
@@ -360,41 +367,40 @@ def markovDecision(layout, circle):
                     the finish one.
 
     """
-    #expected_cost(layout, 0, [1,2], False, 0, circle)
-    #return [Expec, Dice]
-
-
     expected_cost(layout, current_state=0, dices=[1,2], pass_turn=False, count=0, circle=circle)
-    print(Expec, Dice)
-    for j in range(10):
-
+    for j in range(30):
         for i in range(len(Expec_init)):
             Expec_init[i] = Expec[i]
             Expec[i] = np.inf
-        expected_cost(layout, current_state=0, dices=[1,2], pass_turn=False, count=0, circle=circle)
-        print(Expec, Dice)
 
+        expected_cost(layout, current_state=0, dices=[1,2], pass_turn=False, count=0, circle=circle)
+        if len(np.where(abs(np.subtract(Expec_init, Expec)) > 0.00001)[0]) < 1:
+            break
     return [Expec, Dice]
 
 def main():
-    layout = np.array([0, 0, 1, 0, 3, 0, 0, 2, 0, 1, 0, 4, 0, 3, 0])
     layout_zeros = np.zeros((15,1))
-    layout_basic1 = np.array([0,1,0,0,0, 0,0,0,0,0, 0,0,0,0,0])
-    layout_complex1 = np.array([0,0,1,2,3, 0,0,0,0,0, 0,0,1,1,0])
-    circle = False
+    layout_basic1 = np.array([0,1,0,0,0,0,0,0,0,0,0,0,0,0,0])
+    layout_basic2 = np.array([0,0,1,0,0,0,0,0,0,0,0,0,0,0,0])
+    layout_basic3 = np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    layout_test = np.array([0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 3, 0, 0, 0])
+    circle = True
 
 
     simu = True
-    markov = False
+    markov = True
 
     if simu: # run simulations
-        simu = Simulation(layout_basic1, circle)
+        simu = Simulation(layout_test, circle)
         simu.simulate(10000)
         simu.print_results()
 
     if markov: # test Markov
-        [ret1, ret2] = markovDecision(layout, circle)
-        print(ret1, ret2)
+        [ret1, ret2] = markovDecision(layout_test, circle)
+        print("Expected costs (Markov process) : ", ret1)
+        #print("Expected costs (Markov process) : ", [round(x, 5) for x in ret1])
+        #print(ret2)
 
 
     # test basic strategies
@@ -406,15 +412,15 @@ def main():
 
 def test(layout, circle, dices):
 
-    expected_cost(layout, current_state=0, dices=dices, pass_turn=False, count=0, circle=circle)
-    print(Expec, Dice)
-    for j in range(10):
-
+    expected_cost(layout, current_state=0, dices=[1, 2], pass_turn=False, count=0, circle=circle)
+    for j in range(30):
         for i in range(len(Expec_init)):
             Expec_init[i] = Expec[i]
             Expec[i] = np.inf
-        expected_cost(layout, current_state=0, dices=dices, pass_turn=False, count=0, circle=circle)
-        print(Expec, Dice)
+
+        expected_cost(layout, current_state=0, dices=[1, 2], pass_turn=False, count=0, circle=circle)
+        if len(np.where(abs(np.subtract(Expec_init, Expec)) > 0.00001)[0]) < 1:
+            break
     return [Expec, Dice]
 
 

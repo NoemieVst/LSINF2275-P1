@@ -96,9 +96,7 @@ class Test(TestCase):
         self.test_next_states(layout,current_state, dice, circle, pred)
 
 
-
-    def test_exp_cost1(self):
-        """Test avec :
+    """Tests suivants avec :
         next_state = [[1,3], [2], [4], [4], [4]]
         next_state2 = [[1], [2], [4], [4], [4]]
         next_state_circle = [[1,3], [2], [4], [4], [0]]
@@ -106,6 +104,8 @@ class Test(TestCase):
         three_backwards = [0,0,0,0]
         end = 4
         """
+
+    def test_exp_cost1(self):
         layout = [0, 0, 0, 0, 0]
         dices = [1]
         circle = False
@@ -113,14 +113,6 @@ class Test(TestCase):
         self.text_exp_cost(layout, circle, dices, Expec_pred)
 
     def test_exp_cost2(self):
-        """Test avec :
-        next_state = [[1,3], [2], [4], [4], [4]]
-        next_state2 = [[1], [2], [4], [4], [4]]
-        next_state_circle = [[1,3], [2], [4], [4], [0]]
-        next_state_circle2 = [[1,3], [2], [4], [4], [0]]
-        three_backwards = [0,0,0,0]
-        end = 4
-        """
         layout = [0, 0, 0, 0, 0]
         dices = [2]
         circle = False
@@ -128,16 +120,15 @@ class Test(TestCase):
         self.text_exp_cost(layout, circle, dices, Expec_pred)
 
     def test_exp_cost3(self):
-        """Test avec :
-        next_state = [[1,3], [2], [4], [4], [4]]
-        next_state2 = [[1], [2], [4], [4], [4]]
-        next_state_circle = [[1,3], [2], [4], [4], [0]]
-        next_state_circle2 = [[1,3], [2], [4], [4], [0]]
-        three_backwards = [0,0,0,0]
-        end = 4
-        """
         layout = [0, 0, 0, 0, 0]
         dices = [2]
         circle = True
         Expec_pred = [45/11, 36/11, 39/11, 39/11]
+        self.text_exp_cost(layout, circle, dices, Expec_pred)
+
+    def test_exp_cost4(self):
+        layout = [0, 0, 0, 0, 1, 0]
+        dices = [2]
+        circle = True
+        Expec_pred = [45/11, 36/11, 39/11, 39/11, 0]
         self.text_exp_cost(layout, circle, dices, Expec_pred)
