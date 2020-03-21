@@ -56,6 +56,8 @@ class Strategy():
         for case in range(14):
             if len(self.costs[case]) != 0:
                 self.average_costs[case] = sum(self.costs[case]) / len(self.costs[case])
+            else:
+                self.average_costs[case] = 0
 
     def play_game(self):
         # -- play
@@ -96,10 +98,12 @@ class Simulation():
         self.simu_dice1 = Strategy("Dice 1", False, layout, circle, np.ones((15,1)))
         self.simu_dice2 = Strategy("Dice 2", False, layout, circle, 2*np.ones((15,1)))
         self.simu_random = Strategy("Random", True, layout, circle)
+        #self.simu_perso = Strategy("Perso", False, layout, circle, [2., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.])
         [expec,dice] = markovDecision(layout, circle)
         self.simu_VI_expec = expec
         self.simu_VI = Strategy("Value Iteration", False, layout, circle, dice)
         print("Theorical costs for "+self.simu_VI.name+" are "+str(expec)+"\n")
+        print("Dices for "+self.simu_VI.name+" are "+str(dice)+"\n")
 
         self.nb_times = 0
 
@@ -108,6 +112,7 @@ class Simulation():
         self.simu_dice2.run_experiments(nb_times)
         self.simu_random.run_experiments(nb_times)
         self.simu_VI.run_experiments(nb_times)
+        #self.simu_perso.run_experiments(nb_times)
 
         self.nb_times = nb_times
 
@@ -130,6 +135,8 @@ class Simulation():
 
         # -- Plot of the average costs found
         X = range(1,15)
+        # self.simu_dice1.average_costs[self.simu_dice1.average_costs == None] = 0
+        # self.simu_VI.average_costs[self.simu_VI.average_costs] = 0
         plt.plot(X,self.simu_dice1.average_costs)
         plt.plot(X,self.simu_dice2.average_costs)
         plt.plot(X,self.simu_random.average_costs)
@@ -424,10 +431,13 @@ def markovDecision(layout, circle):
     return [Expec, Dice]
 
 def main():
-    layout_zeros = np.zeros((15,1))
+    layout_zeros = np.zeros((15,1)) # first analysis in the report
     layout_basic1 = np.array([0,1,0,0,0,0,0,0,0,0,0,0,0,0,0])
     layout_basic2 = np.array([0,0,1,0,0,0,0,0,0,0,0,0,0,0,0])
     layout_basic3 = np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    layout_basic4 = np.array([0,0,0,0,0,0,0,1,0,0,0,0,0,0,0]) # 2nd analysis in the report
+    layout_basic5 = np.array([0,0,0,0,0,0,0,0,0,0,1,1,1,1,0]) # 3rd analysis in the report
+    layout_complex1 = np.array([0,2,2,2,2,2,2,2,2,2,2,2,2,2,0]) # 4th analysis in the report ?! -> not working
 
     layout_test = np.array([0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 3, 0, 0, 0])
     circle = False
@@ -436,10 +446,10 @@ def main():
     markov = False
 
     if simu: # run simulations
-        simu = Simulation("no traps", layout_basic1, circle)
+        simu = Simulation("", layout_basic4, circle)
         simu.simulate(10000)
         simu.print_results()
-        #simu.export_array("cost_no_traps_True")
+        #simu.export_array("cost_trap_1_case_8_False")
         #simu.plot_results()
 
     if markov: # test Markov
