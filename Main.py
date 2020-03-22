@@ -35,21 +35,27 @@ Dice = np.full(end, np.inf)
 
 
 class Strategy():
+    """Tools for simulating a given or random strategy of the
+    Snakes and Ladders game and compute the costs of each square.
+    """
     def __init__(self, name, random, layout, circle, policy=[]):
-        self.name = name
-        self.random = random # random=True: play without a policy, using random choices
+        """Initialise a simulation of a given strategy."""
+        self.name = name                # name of the strategy, used for legends of figures
+        self.random = random            # random=True: play without a policy, using random choices
         self.layout = layout
         self.circle = circle
-        self.policy = policy # not needed IF random=True
+        if random == False:             # not needed IF random=True
+            self.policy = policy
 
-        self.costs = [None]*14 # number of turns left for each case
-        self.average_costs = [None]*14 # average number of turns left for each case
+        self.costs = [None]*14          # number of turns left for each case
+        self.average_costs = [None]*14  # average number of turns left for each case
         for case in range(14):
             self.costs[case] = list()
 
-        self.turns = list() # number of turns for each simulated game
+        self.turns = list()             # number of turns of each simulated game
 
     def run_experiments(self, nb_times):
+        """Launch <nb_times> simulations of the game"""
         for i in range(nb_times):
             self.play_game()
 
@@ -57,10 +63,12 @@ class Strategy():
             if len(self.costs[case]) != 0:
                 self.average_costs[case] = sum(self.costs[case]) / len(self.costs[case])
             else:
-                self.average_costs[case] = 0
+                self.average_costs[case] = 0        # infinite costs are saved as "0"
 
     def play_game(self):
-        # -- play
+        """Play one round of the game and save each cost
+        (number of turns before the end of the game)."""
+        # -- initialise the game
         turns_numbers = [None]*14
         for case in range(14):
             turns_numbers[case] = list()
@@ -70,9 +78,10 @@ class Strategy():
         turn = 1
         skip_next = False
 
+        # -- play the game
         while (square < 15):
-            turns_numbers[square-1].append(turn)
-            if skip_next == True:
+            turns_numbers[square-1].append(turn)    # add the turn to the list of turns of this case
+            if skip_next == True:                   # IF the player is in prison, skip this turn
                 skip_next = False
             else:
                 if self.random == False:
@@ -81,42 +90,42 @@ class Strategy():
                     [square,skip_next,theorical_suqare] = gameTurn(self.layout, self.circle, square, random.randint(1,2))
             turn += 1
 
-        # -- save data
-        self.turns.append(turn) # append the total number of turns of the actual game
+        # -- save the results
+        self.turns.append(turn)                     # append the total number of turns of the actual game
 
         for case in range(14):
             for val in turns_numbers[case]:
-                self.costs[case].append(turn-val)
+                self.costs[case].append(turn-val)   # append each cost
 
 class Simulation():
+    """Tools for simulating multiple strategies of the Snakes and Ladders
+    game and displaying or saving the results of the simulations.
+    """
     def __init__(self, layout_name, layout, circle):
-        """
-        Run simulations with simulate()
-        Then check the results with print_results() or plot_results()
-        """
-        self.layout_name = layout_name # name of the layout, will be used for the plots
-        self.simu_dice1 = Strategy("Dice 1", False, layout, circle, np.ones((15,1)))
-        self.simu_dice2 = Strategy("Dice 2", False, layout, circle, 2*np.ones((15,1)))
-        self.simu_random = Strategy("Random", True, layout, circle)
-        #self.simu_perso = Strategy("Perso", False, layout, circle, [2., 1., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2., 2.])
+        """Initialise the simulations."""
+        self.layout_name = layout_name                                                  # name of the layout, will be used for the plots
+        self.simu_dice1 = Strategy("Dice 1", False, layout, circle, np.ones((15,1)))    # 1st strategy: use only dice 1
+        self.simu_dice2 = Strategy("Dice 2", False, layout, circle, 2*np.ones((15,1)))  # 2nd strategy: use only dice 2
+        self.simu_random = Strategy("Random", True, layout, circle)                     # 3rd strategy: random dices
         [expec,dice] = markovDecision(layout, circle)
-        self.simu_VI_expec = expec
-        self.simu_VI = Strategy("Value Iteration", False, layout, circle, dice)
-        print("Theorical costs for "+self.simu_VI.name+" are "+str(expec)+"\n")
-        print("Dices for "+self.simu_VI.name+" are "+str(dice)+"\n")
-
+        self.VI_expec = expec
+        self.VI_dices = dice
+        self.simu_VI = Strategy("Value Iteration", False, layout, circle, dice)         # 4th strategy: Markov optimal strategy
         self.nb_times = 0
 
     def simulate(self, nb_times):
+        """ Run a simulation <nb_times> times"""
         self.simu_dice1.run_experiments(nb_times)
         self.simu_dice2.run_experiments(nb_times)
         self.simu_random.run_experiments(nb_times)
         self.simu_VI.run_experiments(nb_times)
-        #self.simu_perso.run_experiments(nb_times)
-
-        self.nb_times = nb_times
+        self.nb_times = nb_times # save the number of runs of the simulations
 
     def print_results(self):
+        """Print the theorical and average costs for the Markov policy
+        and the average costs for the other strategies."""
+        print("Theorical costs for "+self.simu_VI.name+" are "+str(self.VI_expec)+"\n")
+        print("Dices for "+self.simu_VI.name+" are "+str(self.VI_dices)+"\n")
         print("Results for "+str(self.nb_times)+" simulations: \n")
         print("Average costs for "+self.simu_dice1.name+" are "+str(self.simu_dice1.average_costs)+"\n")
         print("Average costs for "+self.simu_dice2.name+" are "+str(self.simu_dice2.average_costs)+"\n")
@@ -124,6 +133,7 @@ class Simulation():
         print("Average costs for "+self.simu_VI.name+" are "+str(self.simu_VI.average_costs)+"\n")
 
     def plot_results(self):
+        """Plot the results of the simulations."""
         # -- Box plot of the average number of turns for each game
         data = [self.simu_dice1.turns, self.simu_dice2.turns, self.simu_random.turns, self.simu_VI.turns]
         fig, ax = plt.subplots()
@@ -135,8 +145,6 @@ class Simulation():
 
         # -- Plot of the average costs found
         X = range(1,15)
-        # self.simu_dice1.average_costs[self.simu_dice1.average_costs == None] = 0
-        # self.simu_VI.average_costs[self.simu_VI.average_costs] = 0
         plt.plot(X,self.simu_dice1.average_costs)
         plt.plot(X,self.simu_dice2.average_costs)
         plt.plot(X,self.simu_random.average_costs)
@@ -150,12 +158,10 @@ class Simulation():
         plt.ylabel('Average cost')
         plt.show()
 
-        # -- Comparaison between theorical and experimental costs for VI (Value Iteration)
-        # -> with a table in the report
-
-    def export_array(self, filename): # saves the theorical and empirical costs in the file <filename>.csv
+    def export_array(self, filename):
+        """Save the theorical and empirical costs in the file <filename>.csv"""
         X = range(1,15)
-        Table = np.asarray([X,self.simu_VI_expec,self.simu_VI.average_costs])
+        Table = np.asarray([X,self.VI_expec,self.simu_VI.average_costs])
         Table.shape = (3,14)
         Table = Table.transpose()
         print(Table)
@@ -197,7 +203,7 @@ def gameTurn(layout, circle, square, dice):
     # -- Take the step
     if step != 0:
         if square == 3:
-            lane = random.randint(0,1) # (0: slow lane, 1: fast lane)
+            lane = random.randint(0,1)          # (0: slow lane, 1: fast lane)
             square += (7*lane + step)
         elif square == 10:
             square = 14 + step
@@ -206,28 +212,28 @@ def gameTurn(layout, circle, square, dice):
         else:
             square += step
 
-    if (square == 16 and circle == True): # in case of circular plate
+    if (square == 16 and circle == True):       # in case of circular plate
         square = 1
 
     theorical_square = square
 
     # -- Triggers
     if (dice == 2 and square != 16):
-        if layout[square-1] == 4: # take random trap
+        if layout[square-1] == 4:               # take random trap
             trap = random.randint(1,3)
         else:
             trap = layout[square-1]
 
-        if trap == 1: # go back to square 1
+        if trap == 1:                           # go back to square 1
             square = 1
-        elif trap == 2: # go back 3 steps
+        elif trap == 2:                         # go back 3 steps
             if (square == 11 or square == 12 or square == 13):
                 square -= (7 + 3)
-            elif (square == 2 or square == 3): # IF can not go back 3 steps
+            elif (square == 2 or square == 3):  # IF can not go back 3 steps
                 square = 1
             else:
                 square -= 3
-        elif trap == 3:
+        elif trap == 3:                         # go to prison
             skip_next = True
 
     return [square,skip_next,theorical_square]
@@ -434,19 +440,19 @@ def main():
     layout_zeros = np.zeros((15,1)) # first analysis in the report
     layout_basic1 = np.array([0,1,0,0,0,0,0,0,0,0,0,0,0,0,0])
     layout_basic2 = np.array([0,0,1,0,0,0,0,0,0,0,0,0,0,0,0])
-    layout_basic3 = np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    layout_basic3 = np.array([0,0,0,1,0,0,0,0,0,0,0,0,0,0,0])
     layout_basic4 = np.array([0,0,0,0,0,0,0,1,0,0,0,0,0,0,0]) # 2nd analysis in the report
     layout_basic5 = np.array([0,0,0,0,0,0,0,0,0,0,1,1,1,1,0]) # 3rd analysis in the report
-    layout_complex1 = np.array([0,2,2,2,2,2,2,2,2,2,2,2,2,2,0]) # 4th analysis in the report ?! -> not working
+    layout_complex1 = np.array([0,3,3,3,3,3,3,2,3,4,3,3,3,1,0]) # 4th analysis in the report
+    layout_test = np.array([0,0,0,2,0,0,1,0,0,0,0,3,0,0,0])
 
-    layout_test = np.array([0, 0, 0, 2, 0, 0, 1, 0, 0, 0, 0, 3, 0, 0, 0])
     circle = False
 
-    simu = True
-    markov = False
+    simu = True # run the simulation ?
+    markov = False # run Markov Process ?
 
     if simu: # run simulations
-        simu = Simulation("", layout_basic4, circle)
+        simu = Simulation("trap 1 on square 8", layout_basic4, circle)
         simu.simulate(10000)
         simu.print_results()
         #simu.export_array("cost_trap_1_case_8_False")
@@ -458,14 +464,6 @@ def main():
         print("Dices (Markov process) : ", ret2)
         #print("Expected costs (Markov process) : ", [round(x, 5) for x in ret1])
         #print(ret2)
-
-
-    # test basic strategies
-    #policy_1 = np.ones((15,1))
-    #policy_2 = 2*np.ones((15,1))
-
-    #playGame(layout,circle,policy_1)
-
 
 def test(layout, circle, dices):
 
