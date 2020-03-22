@@ -12,14 +12,6 @@ next_state_circle2 = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [14], [11], [
 three_backwards = [ 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 10]
 end = 14
 
-# For the tests
-# next_state = [[1,3], [2], [4], [4], [4]]
-# next_state2 = [[1], [2], [4], [4], [4]]
-# next_state_circle = [[1,3], [2], [4], [4], [0]]
-# next_state_circle2 = [[1], [2], [4], [4], [0]]
-# three_backwards = [0,0,0,0]
-# end = 4
-
 Expec_init = np.zeros(end)
 
 Expec = np.full(end, np.inf)
@@ -473,19 +465,6 @@ def main():
         [ret1, ret2] = markovDecision(layout_zeros, circle)
         print("Expected costs (Markov process) : ", ret1)
         print("Dices (Markov process) : ", ret2)
-
-def test(layout, circle, dices): # for the tests
-
-    expected_cost(layout, current_state=0, dices=[1, 2], pass_turn=False, count=0, circle=circle)
-    for j in range(30):
-        for i in range(len(Expec_init)):
-            Expec_init[i] = Expec[i]
-            Expec[i] = np.inf
-
-        expected_cost(layout, current_state=0, dices=[1, 2], pass_turn=False, count=0, circle=circle)
-        if len(np.where(abs(np.subtract(Expec_init, Expec)) > 0.00001)[0]) < 1:
-            break
-    return [Expec, Dice]
 
 if __name__ == "__main__":
     main()
