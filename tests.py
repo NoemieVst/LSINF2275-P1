@@ -125,10 +125,3 @@ class Test(TestCase):
         circle = True
         Expec_pred = [45/11, 36/11, 39/11, 39/11]
         self.text_exp_cost(layout, circle, dices, Expec_pred)
-
-    def test_exp_cost4(self):
-        layout = [0, 0, 0, 0, 1, 0]
-        dices = [2]
-        circle = True
-        Expec_pred = [45/11, 36/11, 39/11, 39/11, 0]
-        self.text_exp_cost(layout, circle, dices, Expec_pred)
